@@ -82,6 +82,9 @@ class TestBikeRental(object):
     def test_best_price(self, rental, expected_cost):
         assert rental.best_price() == expected_cost
 
+    def test_repr(self):
+        repr(_bike(days=4))
+
 
 class TestGroupRental(object):
 
@@ -108,3 +111,6 @@ class TestGroupRental(object):
         family_discount = 0.7
         expected_cost *= family_discount
         assert billing.GroupRental(rentals).best_price() == expected_cost
+
+    def test_repr(self):
+        repr(billing.GroupRental(rentals=[]))
