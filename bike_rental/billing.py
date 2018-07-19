@@ -1,4 +1,5 @@
 """Billing module for bike rental."""
+import abc
 import math
 import enum
 import datetime
@@ -28,3 +29,27 @@ class BikeRate(enum.Enum):
 
         price, time_unit = self.value  # pylint: disable=E0633
         return math.ceil(duration / time_unit) * price
+
+
+class _Rental(abc.ABC):  # pylint: disable=R0903
+    """Abstract interface for get the best price for renting."""
+
+    @abc.abstractmethod
+    def best_price(self) -> int:
+        """Abstract method that return rental best price"""
+
+
+class BikeRental(_Rental):
+    """Implement _Rental interface for a single bike."""
+
+    def __init__(self, duration: datetime.timedelta) -> None:
+        if duration <= datetime.timedelta():
+            raise InvalidDuration('duration={} is not legal'.format(duration))
+
+        self._duration = duration
+
+    def __repr__(self):
+        return '{}(duration={})'.format(type(self).__name__, self._duration)
+
+    def best_price(self) -> int:
+        return min(rate.cost(self._duration) for rate in BikeRate)

@@ -52,3 +52,32 @@ class TestBikeRate(object):
         rate = random.choice(list(billing.BikeRate))
         with pytest.raises(billing.InvalidDuration):
             rate.cost(duration)
+
+
+def _bike(**kwargs) -> billing.BikeRental:
+    duration = datetime.timedelta(**kwargs)
+    return billing.BikeRental(duration)
+
+
+class TestBikeRental(object):
+
+    @pytest.mark.parametrize('duration', [
+        datetime.timedelta(),
+        datetime.timedelta(seconds=-1)
+    ])
+    def test_illegal_duration(self, duration):
+        with pytest.raises(billing.InvalidDuration):
+            billing.BikeRental(duration)
+
+    @pytest.mark.parametrize('rental, expected_cost', [
+        (_bike(hours=1), HOUR_PRICE),
+        (_bike(hours=4), HOUR_PRICE * 4),
+        (_bike(hours=5), DAY_PRICE),
+        (_bike(days=1), DAY_PRICE),
+        (_bike(days=3), DAY_PRICE * 3),
+        (_bike(days=4), WEEK_PRICE),
+        (_bike(weeks=1), WEEK_PRICE),
+        (_bike(weeks=5), WEEK_PRICE * 5)
+    ])
+    def test_best_price(self, rental, expected_cost):
+        assert rental.best_price() == expected_cost
