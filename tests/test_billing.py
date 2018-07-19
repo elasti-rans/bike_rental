@@ -81,3 +81,30 @@ class TestBikeRental(object):
     ])
     def test_best_price(self, rental, expected_cost):
         assert rental.best_price() == expected_cost
+
+
+class TestGroupRental(object):
+
+    @pytest.mark.parametrize('rentals, expected_cost', [
+        ((), 0),
+        ((_bike(hours=1),), HOUR_PRICE),
+        ((_bike(hours=1), _bike(hours=2)), HOUR_PRICE * 3),
+        ((_bike(hours=3), _bike(hours=23)), HOUR_PRICE * 3 + DAY_PRICE),
+        ((_bike(hours=1), _bike(hours=1), _bike(hours=1), _bike(days=1),
+          _bike(weeks=4), _bike(weeks=4)),
+         HOUR_PRICE * 3 + DAY_PRICE + WEEK_PRICE * 8)
+    ])
+    def test_no_discount(self, rentals, expected_cost):
+        assert billing.GroupRental(rentals).best_price() == expected_cost
+
+    @pytest.mark.parametrize('rentals, expected_cost', [
+        ((_bike(hours=1), _bike(hours=1), _bike(hours=1)), HOUR_PRICE * 3),
+        ((_bike(hours=1), _bike(hours=1), _bike(days=1), _bike(days=2)),
+         HOUR_PRICE * 2 + DAY_PRICE * 3),
+        ((_bike(hours=2), _bike(hours=2), _bike(days=2), _bike(days=2),
+          _bike(weeks=3)), HOUR_PRICE * 4 + DAY_PRICE * 4 + WEEK_PRICE * 3)
+        ])
+    def test_family_discount(self, rentals, expected_cost):
+        family_discount = 0.7
+        expected_cost *= family_discount
+        assert billing.GroupRental(rentals).best_price() == expected_cost

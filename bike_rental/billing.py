@@ -2,6 +2,7 @@
 import abc
 import math
 import enum
+import typing
 import datetime
 
 
@@ -35,7 +36,7 @@ class _Rental(abc.ABC):  # pylint: disable=R0903
     """Abstract interface for get the best price for renting."""
 
     @abc.abstractmethod
-    def best_price(self) -> int:
+    def best_price(self) -> typing.Union[int, float]:
         """Abstract method that return rental best price"""
 
 
@@ -53,3 +54,25 @@ class BikeRental(_Rental):
 
     def best_price(self) -> int:
         return min(rate.cost(self._duration) for rate in BikeRate)
+
+
+class GroupRental(_Rental):
+    """Implement _Rental for a list of bikes."""
+
+    _NO_DISCOUNT = 1.0
+    _FAMILY_DISCOUNT = 0.7
+
+    def __init__(self, rentals: typing.List[BikeRental]) -> None:
+        self._rentals = rentals
+
+    def __repr__(self):
+        return '{}(rentals={})'.format(type(self).__name__, self._rentals)
+
+    def best_price(self) -> float:
+        price = sum(rental.best_price() for rental in self._rentals)
+        return price * self._discount
+
+    @property
+    def _discount(self) -> float:
+        family_discount = 3 <= len(self._rentals) <= 5
+        return self._FAMILY_DISCOUNT if family_discount else self._NO_DISCOUNT
